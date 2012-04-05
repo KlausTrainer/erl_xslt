@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="fuzface.xsl" type="text/xsl"?>
+
+<commentary>
+  <meta>
+    <author>
+      <first_name>Sean</first_name>
+      <last_name>Chittenden</last_name>
+      <email>sean@chittenden.org</email>
+    </author>
+    <version>$Version$</version>
+    <date>$Date$</date>
+    <id>$Id$</id>     <title>Fuzface...</title>
+    <subtitle>The Internet's a big place and here's some proof...</subtitle>
+  </meta>
+
+  <body>
+    <para>
+      I think it's a tragedy that I'm going to start off my new
+      commentary by talking about facial hair and the Internet.
+      Something about that just screams pathetic, but whatever: it's
+      humor and that's life.
+    </para>
+  </body>
+</commentary>

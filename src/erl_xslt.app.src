@@ -1,0 +1,7 @@
+{application, erl_xslt, [
+    {description, "Erlang NIF for libxslt."},
+    {vsn, git},
+    {registered, []},
+    {applications, [kernel]}
+]}.
+
