@@ -123,6 +123,11 @@ transform(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 	}
 
 	input_xml = xmlParseDoc((const xmlChar *) input_xml_string);
+	if (!input_xml)
+		return enif_make_tuple2(
+				env,
+				enif_make_atom(env, "error"),
+				enif_make_atom(env, "invalid_xml"));
 	xslt_result = xsltApplyStylesheet(xslt, input_xml, NULL);
 
 	xsltSaveResultToString(&doc_txt_ptr, &doc_txt_len, xslt_result, xslt);
