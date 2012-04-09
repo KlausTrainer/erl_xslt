@@ -129,6 +129,11 @@ transform(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 				enif_make_atom(env, "error"),
 				enif_make_atom(env, "invalid_xml"));
 	xslt_result = xsltApplyStylesheet(xslt, input_xml, NULL);
+	if (!xslt_result)
+		return enif_make_tuple2(
+				env,
+				enif_make_atom(env, "error"),
+				enif_make_atom(env, "xslt_error"));
 
 	xsltSaveResultToString(&doc_txt_ptr, &doc_txt_len, xslt_result, xslt);
 	memcpy(enif_make_new_binary(env, doc_txt_len, &term), doc_txt_ptr, doc_txt_len);
