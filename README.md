@@ -1,12 +1,13 @@
 # erl_xslt
 
-erl_xslt provides an Erlang NIF for [libxslt](http://xmlsoft.org/xslt/).
+erl_xslt provides an Erlang NIF binding for
+[libxslt](http://xmlsoft.org/xslt/) that can be used for
+[XSL Transformations](http://www.w3.org/TR/xslt).
 
-## Features
+## Functionality
 
-erl_xslt provides an Erlang function for transforming XSLT stylesheets.
-Simply specify a stylesheet's filename and the XML to be transformed as binary,
-respectively. As of now, XSLT parameters are not supported.
+Simply specify an XSLT stylesheet's filename and the XML to be transformed as
+binary, respectively. XSLT parameters are currently not supported.
 
 Once a stylesheet has been read from the filesystem and is parsed, the
 stylesheet's parsed representation is cached in memory to be reused for
