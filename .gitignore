@@ -1,4 +1,5 @@
 ebin/
+doc/
 .eunit/
 *.so
 *.o
