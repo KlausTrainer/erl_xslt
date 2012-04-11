@@ -45,14 +45,14 @@ put(ErlNifEnv* env, unsigned char* filename, xsltStylesheetPtr stylesheet)
 	xsltStylesheetPtr old_stylesheet = get(env, filename);
 
 	if (old_stylesheet == NULL) {
-		np = (htab*) malloc(sizeof(*np));
+		np = (htab*) enif_alloc(sizeof(*np));
 		if (np == NULL)
 			return 0;
 		np->filename = filename;
 		np->stylesheet = stylesheet;
 		hashtab[hashval] = np;
 	} else {
-		free(filename);
+		enif_free(filename);
 		xsltFreeStylesheet(old_stylesheet);
 		hashtab[hashval]->stylesheet = stylesheet;
 	}
@@ -78,7 +78,7 @@ getStylesheet(ErlNifEnv* env, unsigned char* filename)
 static unsigned char*
 binary_to_string(ErlNifBinary* bin)
 {
-	unsigned char* str = malloc(bin->size + 1);
+	unsigned char* str = (unsigned char*) enif_alloc(bin->size + 1);
 
 	if (str == NULL)
 		return NULL;
@@ -114,8 +114,8 @@ transform(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 				enif_make_atom(env, "enomem"));
 
 	if (!(xslt = getStylesheet(env, xslt_filename))) {
-		free(xslt_filename);
-		free(input_xml_string);
+		enif_free(xslt_filename);
+		enif_free(input_xml_string);
 		return enif_make_tuple2(
 				env,
 				enif_make_atom(env, "error"),
@@ -136,11 +136,13 @@ transform(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 				enif_make_atom(env, "xslt_error"));
 
 	xsltSaveResultToString(&doc_txt_ptr, &doc_txt_len, xslt_result, xslt);
-	memcpy(enif_make_new_binary(env, doc_txt_len, &term), doc_txt_ptr, doc_txt_len);
+	memcpy(
+		enif_make_new_binary(env, doc_txt_len, &term),
+		doc_txt_ptr,
+		doc_txt_len);
 
-	free(input_xml_string);
-	free(doc_txt_ptr);
-
+	enif_free(input_xml_string);
+	xmlFree(doc_txt_ptr);
 	xmlFreeDoc(xslt_result);
 	xmlFreeDoc(input_xml);
 
@@ -153,10 +155,19 @@ transform(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 static int
 load(ErlNifEnv* env, void** priv, ERL_NIF_TERM info)
 {
-	*priv = (htab*) calloc(HASHSIZE, sizeof(htab*));
+	*priv = (htab*) enif_alloc(HASHSIZE * sizeof(htab*));
 	if (*priv == NULL)
 		return 1;
+	bzero(*priv, HASHSIZE * sizeof(htab*));
+
+	if (xmlMemSetup(enif_free,
+			enif_alloc,
+			enif_realloc,
+			(xmlStrdupFunc) xmlStrdup) != 0)
+		return 1;
+	xmlInitParser();
 	xmlSubstituteEntitiesDefault(1);
+
 	return 0;
 }
 
