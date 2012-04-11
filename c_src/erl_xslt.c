@@ -12,22 +12,22 @@ typedef struct {
 } htab;
 
 static unsigned int
-hash(const unsigned char* s)
+hash(const unsigned char* filename)
 {
 	unsigned int hashval;
 
-	for (hashval = 0; *s != '\0'; s++)
-		hashval = (*s + 31 * hashval) & (HASHSIZE - 1);
+	for (hashval = 0; *filename != '\0'; filename++)
+		hashval = (*filename + 31 * hashval) & (HASHSIZE - 1);
 	return hashval;
 }
 
 static xsltStylesheetPtr
-get(ErlNifEnv* env, const unsigned char* s)
+get(ErlNifEnv* env, const unsigned char* filename)
 {
 	htab** hashtab = enif_priv_data(env);
-	htab* np = hashtab[hash(s)];
+	htab* np = hashtab[hash(filename)];
 
-	if (np && strcmp((char *) s, (char *) np->filename) == 0) {
+	if (np && strcmp((char *) filename, (char *) np->filename) == 0) {
 		return np->stylesheet;
 	} else {
 		return NULL;
@@ -75,6 +75,8 @@ getStylesheet(ErlNifEnv* env, unsigned char* filename)
 	if (!stylesheet) {
 		stylesheet = xsltParseStylesheetFile(filename);
 		put(env, filename, stylesheet);
+	} else {
+		enif_free(filename);
 	}
 	return stylesheet;
 }
@@ -98,8 +100,9 @@ transform(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 	ErlNifBinary arg0, arg1;
 
 	unsigned char* xslt_filename;
-	unsigned char* input_xml_string;
 	xsltStylesheetPtr xslt;
+
+	unsigned char* input_xml_string;
 	xmlDocPtr input_xml, xslt_result;
 	xmlChar* doc_txt_ptr;
 	int doc_txt_len;
@@ -117,7 +120,8 @@ transform(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 				enif_make_atom(env, "error"),
 				enif_make_atom(env, "enomem"));
 
-	if (!(xslt = getStylesheet(env, xslt_filename))) {
+	xslt = getStylesheet(env, xslt_filename);
+	if (!xslt) {
 		enif_free(xslt_filename);
 		enif_free(input_xml_string);
 		return enif_make_tuple2(
@@ -146,9 +150,9 @@ transform(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 		doc_txt_len);
 
 	enif_free(input_xml_string);
-	xmlFree(doc_txt_ptr);
-	xmlFreeDoc(xslt_result);
 	xmlFreeDoc(input_xml);
+	xmlFreeDoc(xslt_result);
+	xmlFree(doc_txt_ptr);
 
 	return enif_make_tuple2(
 			env,
