@@ -15,10 +15,10 @@ speeding up subsequent transformations.
 
 ## Requirements
 
-* [Erlang](https://github.com/erlang/otp) >= R14B
+* [Erlang](https://github.com/erlang/otp) >= R14B (with header files)
 * [rebar](https://github.com/basho/rebar)
-* [libxml2](http://xmlsoft.org/)
-* [libxslt](http://xmlsoft.org/xslt/)
+* [libxml2](http://xmlsoft.org/) (with header files)
+* [libxslt](http://xmlsoft.org/xslt/) (with header files)
 
 ## Building
 
