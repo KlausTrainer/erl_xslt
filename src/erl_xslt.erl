@@ -1,7 +1,7 @@
 -module(erl_xslt).
--export([transform/2]).
-
 -on_load(init/0).
+
+-export([transform/2]).
 
 init() ->
     PrivDir = case code:priv_dir(?MODULE) of
@@ -16,4 +16,4 @@ init() ->
 
 %% @spec transform(XslFilename::binary(), Xml::binary()) -> {ok, binary()} | {error, Reason}
 transform(_XslFilename, _Xml) ->
-    "NIF library not loaded".
+    erlang:nif_error("NIF library not loaded", [{module, ?MODULE}, {line, ?LINE}]).
