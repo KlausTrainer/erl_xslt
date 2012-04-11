@@ -1,6 +1,10 @@
 #include "erl_xslt.h"
 
+/* This MUST be a power of two! */
 #define HASHSIZE 1024
+#if (!((HASHSIZE != 0) && !(HASHSIZE & (HASHSIZE - 1))))
+#error
+#endif
 
 typedef struct {
     unsigned char* filename;
@@ -13,8 +17,8 @@ hash(const unsigned char* s)
 	unsigned int hashval;
 
 	for (hashval = 0; *s != '\0'; s++)
-		hashval = *s + 31 * hashval;
-	return hashval % HASHSIZE;
+		hashval = (*s + 31 * hashval) & (HASHSIZE - 1);
+	return hashval;
 }
 
 static xsltStylesheetPtr
