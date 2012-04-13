@@ -17,6 +17,7 @@ speeding up subsequent transformations.
 
 * [Erlang](https://github.com/erlang/otp) >= R14B (with header files)
 * [rebar](https://github.com/basho/rebar)
+* [pkg-config](http://www.freedesktop.org/wiki/Software/pkg-config)
 * [libxml2](http://xmlsoft.org/) (with header files)
 * [libxslt](http://xmlsoft.org/xslt/) (with header files)
 
