@@ -3,3 +3,4 @@ doc/
 .eunit/
 *.so
 *.o
+*.beam
