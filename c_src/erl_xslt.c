@@ -7,9 +7,16 @@
 #endif
 
 typedef struct {
-    unsigned char* filename;
-    xsltStylesheetPtr stylesheet;
-} htab;
+	unsigned char* filename;
+	xsltStylesheetPtr stylesheet;
+} StylesheetCacheItem;
+
+typedef StylesheetCacheItem** StylesheetCache;
+
+typedef struct {
+	ErlNifMutex* mutex;
+	StylesheetCache cache;
+} PrivData;
 
 static unsigned int
 hash(const unsigned char* filename)
@@ -24,8 +31,8 @@ hash(const unsigned char* filename)
 static xsltStylesheetPtr
 get(ErlNifEnv* env, const unsigned char* filename)
 {
-	htab** hashtab = enif_priv_data(env);
-	htab* np = hashtab[hash(filename)];
+	StylesheetCache cache = ((PrivData*) enif_priv_data(env))->cache;
+	StylesheetCacheItem* np = cache[hash(filename)];
 
 	if (np && strcmp((char *) filename, (char *) np->filename) == 0) {
 		return np->stylesheet;
@@ -37,32 +44,30 @@ get(ErlNifEnv* env, const unsigned char* filename)
 static int
 put(ErlNifEnv* env, unsigned char* filename, xsltStylesheetPtr stylesheet)
 {
-	htab* np;
+	PrivData* priv_data = (PrivData*) enif_priv_data(env);
+	ErlNifMutex* mutex = priv_data->mutex;
+	StylesheetCache cache = priv_data->cache;
+	StylesheetCacheItem* np;
 
-	ErlNifMutex* mutex = enif_mutex_create("erl_xslt");
-	if (mutex == NULL)
-		return 0;
 	enif_mutex_lock(mutex);
 
-	htab** hashtab = enif_priv_data(env);
 	unsigned int hashval = hash(filename);
 	xsltStylesheetPtr old_stylesheet = get(env, filename);
 
 	if (old_stylesheet == NULL) {
-		np = (htab*) enif_alloc(sizeof(*np));
+		np = (StylesheetCacheItem*) enif_alloc(sizeof(StylesheetCacheItem));
 		if (np == NULL)
 			return 0;
 		np->filename = filename;
 		np->stylesheet = stylesheet;
-		hashtab[hashval] = np;
+		cache[hashval] = np;
 	} else {
 		enif_free(filename);
 		xsltFreeStylesheet(old_stylesheet);
-		hashtab[hashval]->stylesheet = stylesheet;
+		cache[hashval]->stylesheet = stylesheet;
 	}
 
 	enif_mutex_unlock(mutex);
-	enif_mutex_destroy(mutex);
 
 	return 1;
 }
@@ -163,10 +168,20 @@ transform(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 static int
 load(ErlNifEnv* env, void** priv, ERL_NIF_TERM info)
 {
-	*priv = (htab*) enif_alloc(HASHSIZE * sizeof(htab*));
-	if (*priv == NULL)
+	PrivData* priv_data = enif_alloc(sizeof(PrivData));
+	ErlNifMutex* mutex = enif_mutex_create("erl_xslt");
+	StylesheetCache cache =
+		enif_alloc(HASHSIZE * sizeof(StylesheetCacheItem*));
+
+	if (!priv_data || !mutex || !cache)
 		return 1;
-	bzero(*priv, HASHSIZE * sizeof(htab*));
+
+	bzero(cache, HASHSIZE * sizeof(StylesheetCacheItem*));
+
+	priv_data->mutex = mutex;
+	priv_data->cache = cache;
+
+	*priv = (void*) priv_data;
 
 	if (xmlMemSetup(enif_free,
 			enif_alloc,
@@ -189,8 +204,10 @@ upgrade(ErlNifEnv* env, void** priv, void** old_priv, ERL_NIF_TERM info)
 static void
 unload(ErlNifEnv* env, void* priv)
 {
-        xsltCleanupGlobals();
-        xmlCleanupParser();
+	xsltCleanupGlobals();
+	xmlCleanupParser();
+	enif_mutex_destroy(((PrivData*) priv)->mutex);
+	enif_free(((PrivData*) priv)->cache);
 	enif_free(priv);
 	return;
 }

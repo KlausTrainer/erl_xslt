@@ -9,6 +9,10 @@ transform_test() ->
     {ok, ExpectedResult} = file:read_file(filename:join(TestDir, "result.xml")),
     {ok, Result} = erl_xslt:transform(Xslt, Xml),
     ?assertEqual(ExpectedResult, Result),
+    {ok, Result} = erl_xslt:transform(Xslt, Xml),
+    ?assertEqual(ExpectedResult, Result),
+    {ok, Result} = erl_xslt:transform(Xslt, Xml),
+    ?assertEqual(ExpectedResult, Result),
 
     ?assertEqual({error, no_stylesheet}, erl_xslt:transform(<<"foo.xsl">>, Xml)),
 
