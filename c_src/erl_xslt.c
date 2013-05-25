@@ -54,9 +54,9 @@ put(ErlNifEnv* env, unsigned char* filename, xsltStylesheetPtr stylesheet)
 	unsigned int hashval = hash(filename);
 	xsltStylesheetPtr old_stylesheet = get(env, filename);
 
-	if (old_stylesheet == NULL) {
+	if (!old_stylesheet) {
 		np = (StylesheetCacheItem*) enif_alloc(sizeof(StylesheetCacheItem));
-		if (np == NULL)
+		if (!np)
 			return 0;
 		np->filename = filename;
 		np->stylesheet = stylesheet;
@@ -91,7 +91,7 @@ binary_to_string(ErlNifBinary* bin)
 {
 	unsigned char* str = (unsigned char*) enif_alloc(bin->size + 1);
 
-	if (str == NULL)
+	if (!str)
 		return NULL;
 	strncpy((char *) str, (char *) bin->data, bin->size);
 	str[bin->size] = '\0';
@@ -119,7 +119,7 @@ transform(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
 	xslt_filename = binary_to_string(&arg0);
 	input_xml_string = binary_to_string(&arg1);
-	if (xslt_filename == NULL || input_xml_string == NULL)
+	if (!xslt_filename || !input_xml_string)
 		return enif_make_tuple2(
 				env,
 				enif_make_atom(env, "error"),
