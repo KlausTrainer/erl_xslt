@@ -48,11 +48,13 @@ put(ErlNifEnv* env, unsigned char* filename, xsltStylesheetPtr stylesheet)
 	ErlNifMutex* mutex = priv_data->mutex;
 	StylesheetCache cache = priv_data->cache;
 	StylesheetCacheItem* np;
+	xsltStylesheetPtr old_stylesheet;
+
+	unsigned int hashval = hash(filename);
 
 	enif_mutex_lock(mutex);
 
-	unsigned int hashval = hash(filename);
-	xsltStylesheetPtr old_stylesheet = get(env, filename);
+	old_stylesheet = get(env, filename);
 
 	if (!old_stylesheet) {
 		np = (StylesheetCacheItem*) enif_alloc(sizeof(StylesheetCacheItem));
