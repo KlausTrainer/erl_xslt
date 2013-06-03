@@ -79,10 +79,12 @@ getStylesheet(ErlNifEnv* env, unsigned char* filename)
 
 	if (!stylesheet) {
 		stylesheet = xsltParseStylesheetFile(filename);
-		put(env, filename, stylesheet);
+		if (stylesheet)
+			put(env, filename, stylesheet);
 	} else {
 		enif_free(filename);
 	}
+
 	return stylesheet;
 }
 
